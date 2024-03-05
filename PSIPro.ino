@@ -1,4 +1,37 @@
 /**********************************************************************************************************
+ *  Amatrix's Custom R2-TFA Sketch for the PSI PRO Connected
+ *  Modified by Andrew Johnson from forked PSI Pro project written by Neil Hutchison
+ *  Original Main sequence transitions by Krijn Schaap, based on his PSI sketch.  Many thanks Krijn.
+ *  Original Pattern Timing Tuning by Malcolm MacKenzie
+ *  Original Bug fixes and Mini support by Skelmir
+ *  
+ *
+ *  Thanks to Neil Hutchison, Malcolm (Maxstang) for the most excellent PSI Pro source code
+ *  
+ *
+ *    
+ *  BEFORE BUILDING OR UPLOADING THIS SKETCH, be sure that the config.h, config_front_psi.h, config_rear_psi.h, 
+ *  and matrices.h files are in the skectch folder. 
+ *
+ *  Version 1.8-R2TFA
+ *
+ *  Version History :
+ *  
+ *  Version 1.8-R2TFA - 4th Mar 2024
+ *  
+ *  Initial version to support R2-TFA style PSI light patterns
+ *  Front and Rear PSI config split into separate files to support unique patterns
+ *  Various state logic and swipe function added to PSIPro.ino
+ *  Additional light settings and options added to config.h
+ *
+ *
+ *
+ *
+ *  *******************************************************************************************************
+ *  Pre-Forked Version History Below
+ *  *******************************************************************************************************
+ *
+ *
  *  Maxstang's MaxPSI Sketch for the PSI PRO Connected
  *  Written by Neil Hutchison
  *  Main sequence transitions by Krijn Schaap, based on his PSI sketch.  Many thanks Krijn.
@@ -317,6 +350,12 @@ int ledPatternState;
 bool firstTime;
 bool patternRunning = false;
 uint8_t globalPatternLoops;
+
+// R2-TFA swipe back effect
+// partial LED state tracker for swip back effect 
+bool inPartialState = false;
+int swipeBackCount = 0;
+unsigned long lastSwipeBackTime = 0;
 
 // Timing values received from command are stored here.
 bool timingReceived = false;
@@ -1525,6 +1564,7 @@ void swipe() {
     switch (ledState) {
       case Primary: {
           ledState = PrimaryToSecondary;
+          inPartialState = false;
           swipeDelay = random(SWIPE_DELAY_MINIMUM, SWIPE_DELAY_MAXIMUM);
           DEBUG_PRINT_LN("Switching to secondary color");
 
@@ -1541,11 +1581,12 @@ void swipe() {
             for (int i = 0; i < COLUMNS; i++) {
               overlayColors[i] = i > COLUMNS - totalColumnsLit - 1 ? secondary_color() : primary_color();
             }
+            inPartialState = true;
           } else {
-            DEBUG_PRINT_LN("Selected partial secondary, rest off");
             for (int i = 0; i < COLUMNS; i++) {
               overlayColors[i] = i > COLUMNS - SECONDARY_PARTIAL_OFF_LINES - 1 ? secondary_color() : secondary_off_color();
             }
+            inPartialState = true;
           }
           // Intentional fall through
           FALL_THROUGH()
@@ -1556,6 +1597,11 @@ void swipe() {
           DEBUG_PRINT_LN("On secondary color");
           ledState = Secondary;
           nextEvent = millis() + random(SECONDARY_COLOR_DURATION_MINIMUM, SECONDARY_COLOR_DURATION_MAXIMUM);
+          //R2-TFA swipe back
+          if(shouldSwipeBack()){
+            nextEvent = SWIPE_BACK_DELAY;
+          }
+          //R2-TFA swipe back end
         } else {
           nextEvent = millis() + swipeDelay;
         }
@@ -1563,6 +1609,8 @@ void swipe() {
       case Secondary: {
           ledState = SecondaryToPrimary;
           swipeDelay = random(SWIPE_DELAY_MINIMUM, SWIPE_DELAY_MAXIMUM);
+          //going back to Primary so no longer in any partial state
+          inPartialState = false;
           DEBUG_PRINT_LN("Switching to primary color");
           // Intentional fall through
           FALL_THROUGH()
@@ -1573,6 +1621,11 @@ void swipe() {
           DEBUG_PRINT_LN("On primary color");
           ledState = Primary;
           nextEvent = millis() + random(PRIMARY_COLOR_DURATION_MINIMUM, PRIMARY_COLOR_DURATION_MAXIMUM);
+          //R2-TFA swipe back
+          if(shouldSwipeBack()){
+            nextEvent = SWIPE_BACK_DELAY;
+          }
+          //R2-TFA swipe back end
         } else {
           nextEvent = millis() + swipeDelay;
         }
@@ -2060,6 +2113,38 @@ bool checkDelay()
   if (millis() >= doNext) timerExpired = true;
   return timerExpired;
 }
+
+// Swipe Back
+// Tracks time since last swipeBack and other conditions to determine if should swip back
+bool shouldSwipeBack()
+{
+  bool doSwipeBack = false;
+  int swipeBackChance = random(10);
+  //enable double swipe by counting swipes
+  if(swipeBackCount > 0){
+    //Trigger secondary and 3rd swipe based on Swipe Chance setting
+    if (swipeBackChance < CHANCE_SWIPE_BACK) {
+      doSwipeBack = true;
+    }
+    if(swipeBackCount > 1){
+      swipeBackCount = 0;
+    } else {
+      swipeBackCount++;
+    }
+  } else if(!inPartialState){
+    if (swipeBackChance < CHANCE_SWIPE_BACK) {
+      unsigned long timeNow = millis();
+      if (timeNow - lastSwipeBackTime > 3000) {
+        doSwipeBack = true;
+        swipeBackCount = 1;
+        lastSwipeBackTime = timeNow;
+      }
+    }
+  }
+  return doSwipeBack;
+}
+
+
 
 //set the global pattern timeout
 void set_global_timeout(unsigned long timeout)
