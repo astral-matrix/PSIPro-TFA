@@ -1,7 +1,7 @@
-// Release version 1.2
+// Release version 1.3-R2TFA
 
-///////////////////////////////////////////////////
-//////////////// PSI CONFIGURATION ////////////////
+/////////////////////////////////////////////////////
+//////////////// FRONT PSI CONFIGURATION ///////////
 ///////////////////////////////////////////////////
 
 
@@ -51,20 +51,20 @@ uint8_t defaultPattern = 1; //Mode 1 is Swipe
 // A random value between MINIMUM and MAXIMUM will be used.
 
 #define PRIMARY_COLOR_DURATION_MINIMUM 1000  // Default 2000
-#define PRIMARY_COLOR_DURATION_MAXIMUM 2000 // Default 10000
+#define PRIMARY_COLOR_DURATION_MAXIMUM 5000 // Default 10000
 
 // Number of milliseconds that the secondary color will be
 // visible before switching back to the primary color.
 // A random value between MINIMUM and MAXIMUM will be used.
 
 #define SECONDARY_COLOR_DURATION_MINIMUM 1000  // Default 4000
-#define SECONDARY_COLOR_DURATION_MAXIMUM 2000 // Default 12000
+#define SECONDARY_COLOR_DURATION_MAXIMUM 6000 // Default 12000
 
 // Speed range of the swipe animation. Longer delay means
 // slower animation speed. 
 
 #define SWIPE_DELAY_MINIMUM 10    // Default 20
-#define SWIPE_DELAY_MAXIMUM 30    // Default 50
+#define SWIPE_DELAY_MAXIMUM 20    // Default 50
 
 // Define the chance proportion between the various options for
 // the secondary color. Increasing a value compared to the others increases
@@ -72,22 +72,14 @@ uint8_t defaultPattern = 1; //Mode 1 is Swipe
 // set to 0, it will not be selected.
 
 #define CHANCE_SECONDARY_FULL 6
-#define CHANCE_SECONDARY_PARTIAL 3
-#define CHANCE_SECONDARY_PARTIAL_OFF 1
-
-// Swipe Back Effect
-// Define the chance in 10 that color swipe will immediately swipe back
-#define CHANCE_SWIPE_BACK 7   // Default 5
-
-// Define how soon in millisecongs the swipe back will occur 
-// Longer values over 1500-2000 will not appear as swipe backs
-#define SWIPE_BACK_DELAY 100   // Default 1000
+#define CHANCE_SECONDARY_PARTIAL 5
+#define CHANCE_SECONDARY_PARTIAL_OFF 4
 
 // How many columns to display the secondary color.
 
-#define SECONDARY_PARTIAL_LINES_MIN 5 //The remainder will be the primary color.
-#define SECONDARY_PARTIAL_LINES_MAX 5 //The remainder will be the primary color.
-#define SECONDARY_PARTIAL_OFF_LINES 6 //The remainder will be off.
+#define SECONDARY_PARTIAL_LINES_MIN 3 //The remainder will be the primary color.
+#define SECONDARY_PARTIAL_LINES_MAX 6 //The remainder will be the primary color.
+#define SECONDARY_PARTIAL_OFF_LINES 5 //The remainder will be off.
 
 // Use the jumpers on the PSI CPU board to set Front colors (jumper off)
 // or Rear colors (jumper on).
